@@ -1,3 +1,6 @@
+/* eslint-disable lodash/prefer-lodash-method */
+"use strict";
+
 var roleUpgrader = {
   /** @param {Creep} creep **/
   run: function(creep) {

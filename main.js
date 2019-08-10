@@ -1,4 +1,7 @@
+/* eslint-disable lodash/prefer-immutable-method */
+/* eslint-disable lodash/prefer-lodash-method */
 /// <reference path="./Screeps-Typescript-Declarations/dist/screeps.d.ts"/>
+"use strict";
 // TODO Change all roles to job based functions
 var roles = {
   builder: require("role.builder"),
@@ -8,11 +11,13 @@ var roles = {
 };
 
 require("debug").populate(global);
+require("prototype.room");
+require("prototype.creep");
 
 module.exports.loop = function() {
   //TODO Debug verbosity levels
   //Variables
-  var verbose = false;
+  var verbose = true;
 
   if (verbose) {
     console.log("Start game tick " + Game.time);
@@ -77,6 +82,7 @@ module.exports.loop = function() {
         "%)"
     );
   }
+
   // Get numbers
   var constructTargets = thisRoom.find(FIND_CONSTRUCTION_SITES);
   var healTargets = thisRoom.find(FIND_STRUCTURES, {
@@ -90,89 +96,68 @@ module.exports.loop = function() {
     );
   }
 
+  //Shall we spawn a creep?
   if (
-    builders.length < 5 &&
-    (constructTargets.length || healTargets.length) &&
-    !Game.spawns["Spawn1"].spawning &&
-    thisRoom.energyAvailable / thisRoom.energyCapacityAvailable > 0.7
+    (!Game.spawns["Spawn1"].spawning && thisRoom.energyAvailable / thisRoom.energyCapacityAvailable > 0.7) ||
+    harvesters.length == 0
   ) {
-    var newName = "Builder" + Game.time;
-    console.log("Spawning new builder: " + newName);
-    Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName, {
-      memory: { role: "builder" }
-    });
-  }
-  // TODO: deide if this approach fits
-  // //Drop builders that are upgraders back to healers if required.
-  // if (builders.length > 0 && constructTargets.length) {
-  //   var buildersRoletemp = _.filter(
-  //     Game.creeps,
-  //     creep => creep.memory.role == "builder" && creep.memory.roletemp == "upgrader"
-  //   );
+    //Check builders
 
-  //   if (buildersRoletemp.length) {
-  //     for (var name in buildersRoletemp) {
-  //       buildersRoletemp[name].memory.roletemp = "healer";
-  //       console.log("Healing to do, reassinging " + buildersRoletemp[name].name + " to healer temporarily");
-  //       // name.memory.roletemp = "healer";
-  //     }
-  //   }
-  // }
-
-  // //Drop builders that are temp assigned back to builders if required.
-  // if (builders.length > 0 && (constructTargets.length || healTargets.length)) {
-  //   var buildersRoletemp = _.filter(Game.creeps, creep => creep.memory.role == "builder");
-
-  //   if (buildersRoletemp.length) {
-  //     for (var name in buildersRoletemp) {
-  //       delete buildersRoletemp[name].memory.roletemp;
-  //       console.log("Construction/Healing to do, restoring " + buildersRoletemp[name].name + " to builder again");
-
-  //       // name.memory.roletemp = "healer";
-  //     }
-  //   }
-  // }
-
-  if (
-    upgraders.length < 2 &&
-    !Game.spawns["Spawn1"].spawning &&
-    thisRoom.energyAvailable / thisRoom.energyCapacityAvailable > 0.7
-  ) {
-    var newName = "Upgrader" + Game.time;
-    console.log("Spawning new upgrader: " + newName);
-    Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName, {
-      memory: { role: "upgrader" }
-    });
-  }
-
-  if (
-    harvesters.length < 6 &&
-    !Game.spawns["Spawn1"].spawning &&
-    thisRoom.energyAvailable / thisRoom.energyCapacityAvailable > 0
-  ) {
-    var newName = "Harvester" + Game.time;
-    console.log(newName);
-
-    for (var sourceIndex in thisRoom.find(FIND_SOURCES)) {
-      thisMiners = _.filter(Game.creeps, i => i.memory.source === sourceIndex);
-      console.log(sourceIndex + " " + thisMiners.length);
-      if (thisMiners.length < 3) {
-        Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName, {
-          memory: { role: "harvester", source: sourceIndex }
-        });
-      }
+    if (builders.length < 5 && (constructTargets.length || healTargets.length)) {
+      var newName = "Builder" + Game.time;
+      console.log("Spawning new builder: " + newName);
+      Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName, {
+        memory: { role: "builder" }
+      });
     }
-  }
-  // TODO: what to do at max energy?
-  //   // If at max spawn more upgraders
-  //   if (thisRoom.energyAvailable == thisRoom.energyCapacityAvailable) {
-  //     var newName = "Upgrader" + Game.time;
-  //     console.log("Spawning new upgrader: " + newName);
-  //     Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName, {
-  //       memory: { role: "upgrader" }
-  //     });
-  //   }
 
+    //Check upgraders
+    if (upgraders.length < 2) {
+      var newName = "Upgrader" + Game.time;
+      console.log("Spawning new upgrader: " + newName);
+      Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName, {
+        memory: { role: "upgrader" }
+      });
+    }
+    //Check harvesters
+    if (harvesters.length < 6) {
+      var newName = "Harvester" + Game.time;
+
+      for (var sourceId in thisRoom.sources) {
+        // thisMiners = _.filter(Game.creeps, i => i.memory.source === sourceId);
+        var thisMiners = _.filter(
+          Game.creeps,
+          creep => creep.memory.role == "harvester" && creep.memory.source == thisRoom.sources[sourceId].id
+        );
+
+        if (thisMiners.length < 3) {
+          Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName, {
+            memory: { role: "harvester", harvesting: true, source: thisRoom.sources[sourceId].id }
+          });
+        }
+      }
+
+      // for (var sourceIndex in thisRoom.find(FIND_SOURCES)) {
+      //   thisMiners = _.filter(Game.creeps, i => i.memory.source === sourceIndex);
+      //   console.log(sourceIndex + " " + thisMiners.length);
+      //   if (thisMiners.length < 3) {
+      //     Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName, {
+      //       memory: { role: "harvester", source: sourceIndex }
+      //     });
+      //   }
+    }
+    // TODO: what to do at max energy?
+    //   // If at max spawn more upgraders
+    //   if (thisRoom.energyAvailable == thisRoom.energyCapacityAvailable) {
+    //     var newName = "Upgrader" + Game.time;
+    //     console.log("Spawning new upgrader: " + newName);
+    //     Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName, {
+    //       memory: { role: "upgrader" }
+    //     });
+    //   }
+  }
+
+  // UI for spawning
   if (Game.spawns["Spawn1"].spawning) {
     var spawningCreep = Game.creeps[Game.spawns["Spawn1"].spawning.name];
     Game.spawns["Spawn1"].room.visual.text(
@@ -195,21 +180,6 @@ module.exports.loop = function() {
     } else {
       console.log(creep + " has no role!");
     }
-  }
-};
-
-creep.prototype.moveAndDo = function() {
-  // Move to targeted location and execute action
-  // Input:
-  // creep.memory.target = target ID to move to
-  // creep.memory.action = action to perform on target ID
-
-  //TODO: change ranges based on target action
-
-  if (this.pos.isNearTo(creep.memory.target)) {
-    this[this.memory.action]();
-  } else {
-    this.moveTo(this.memory.target);
   }
 };
 
@@ -318,113 +288,3 @@ Spawn.prototype.createACreep = function() {
   //spawn it as well
   if (!spawnResult) _.pullAt(this.room.spawnQueue, [0]);
 };
-
-Object.defineProperty(Room.prototype, "sources", {
-  get: function() {
-    // If we dont have the value stored locally
-    if (!this._sources) {
-      // If we dont have the value stored in memory
-      if (!this.memory.sourceIds) {
-        // Find the sources and store their id's in memory,
-        // NOT the full objects
-        this.memory.sourceIds = this.find(FIND_SOURCES).map(source => source.id);
-      }
-      // Get the source objects from the id's in memory and store them locally
-      this._sources = this.memory.sourceIds.map(id => Game.getObjectById(id));
-    }
-    // return the locally stored value
-    return this._sources;
-  },
-  set: function(newValue) {
-    // when storing in memory you will want to change the setter
-    // to set the memory value as well as the local value
-    this.memory.sources = newValue.map(source => source.id);
-    this._sources = newValue;
-  },
-  enumerable: false,
-  configurable: true
-});
-
-Object.defineProperty(Room.prototype, "containers", {
-  get: function() {
-    if (!this._containers) {
-      if (!this.memory.containerIds) {
-        this.memory.containerIds = this.find(FIND_STRUCTURES, {
-          filter: structure => {
-            return structure.structureType == STRUCTURE_CONTAINER;
-          }
-        }).map(container => container.id);
-      }
-      //Check if anything present
-
-      if (this.memory.containerIds.length) {
-        this._containers = this.memory.containerIds.map(id => Game.getObjectById(id));
-      } else {
-        this._containers = false;
-      }
-    }
-    // return the locally stored value
-    return this._containers;
-  },
-  set: function(newValue) {
-    // when storing in memory you will want to change the setter
-    // to set the memory value as well as the local value
-    this.memory.containers = newValue.map(containers => containers.id);
-    this._containers = newValue;
-  },
-  enumerable: false,
-  configurable: true
-});
-
-Object.defineProperty(Room.prototype, "extensions", {
-  get: function() {
-    if (!this._extensions) {
-      if (!this.memory.extensionsIds) {
-        this.memory.extensionsIds = this.find(FIND_STRUCTURES, {
-          filter: structure => {
-            return structure.structureType == STRUCTURE_EXTENSION;
-          }
-        }).map(extensions => extensions.id);
-      }
-      //Check if anything present
-
-      if (this.memory.extensionsIds.length) {
-        this._extensions = this.memory.extensionsIds.map(id => Game.getObjectById(id));
-      } else {
-        this._extensions = false;
-      }
-    }
-    // return the locally stored value
-    return this._extensions;
-  },
-  set: function(newValue) {
-    // when storing in memory you will want to change the setter
-    // to set the memory value as well as the local value
-    this.memory.extensions = newValue.map(extensions => extensions.id);
-    this._extensions = newValue;
-  },
-  enumerable: false,
-  configurable: true
-});
-
-Object.defineProperty(Creep.prototype, "isFull", {
-  get: function() {
-    if (!this._isFull) {
-      this._isFull = _.sum(this.carry) === this.carryCapacity;
-    }
-    return this._isFull;
-  },
-  enumerable: false,
-  configurable: true
-});
-
-Object.defineProperty(Creep.prototype, "isEmpty", {
-  get: function() {
-    if (!this._isFull) {
-      this._isFull = _.sum(this.carry) == 0;
-    }
-    return this._isFull;
-  },
-  enumerable: false,
-  configurable: true
-});
