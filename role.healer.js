@@ -1,5 +1,5 @@
 /* eslint-disable lodash/prefer-lodash-method */
-"use strict";
+/*global module*/
 
 var roleHealer = {
   /** @param {Creep} creep **/
@@ -23,7 +23,7 @@ var roleHealer = {
         }
       });
       if (targets.length) {
-        target = creep.pos.findClosestByRange(targets);
+        var target = creep.pos.findClosestByRange(targets);
         if (creep.repair(target) == ERR_NOT_IN_RANGE) {
           creep.moveTo(target);
         } else {

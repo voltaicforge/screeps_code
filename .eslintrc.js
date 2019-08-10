@@ -12,8 +12,12 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: "module"
   },
-  rules: {},
-
+  rules: {
+    "no-undef": "error"
+  },
+  env: {
+    "screeps/screeps": true
+  },
   plugins: ["screeps", "lodash"],
   extends: ["plugin:lodash/canonical"]
 };

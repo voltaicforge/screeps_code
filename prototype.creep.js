@@ -1,5 +1,9 @@
 "use strict";
 
+/**
+ * Determine if creep is full
+ * @returns {boolean}
+ */
 Object.defineProperty(Creep.prototype, "isFull", {
   get: function() {
     if (!this._isFull) {
@@ -11,6 +15,10 @@ Object.defineProperty(Creep.prototype, "isFull", {
   configurable: true
 });
 
+/**
+ * Determine if creep is empty
+ * @returns {boolean}
+ */
 Object.defineProperty(Creep.prototype, "isEmpty", {
   get: function() {
     if (!this._isEmpty) {
@@ -22,6 +30,10 @@ Object.defineProperty(Creep.prototype, "isEmpty", {
   configurable: true
 });
 
+/**
+ * Move toward the creeps target and execute its action
+ * @returns {boolean}
+ */
 Creep.prototype.moveAndDo = function() {
   // Move to targeted location and execute action
   // Input:

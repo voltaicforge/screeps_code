@@ -1,5 +1,5 @@
 /* eslint-disable lodash/prefer-lodash-method */
-"use strict";
+/*global module*/
 
 var roleUpgrader = {
   /** @param {Creep} creep **/

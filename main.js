@@ -1,5 +1,7 @@
 /* eslint-disable lodash/prefer-immutable-method */
 /* eslint-disable lodash/prefer-lodash-method */
+/*global module*/
+
 /// <reference path="./Screeps-Typescript-Declarations/dist/screeps.d.ts"/>
 "use strict";
 // TODO Change all roles to job based functions
@@ -12,6 +14,7 @@ var roles = {
 
 require("debug").populate(global);
 require("prototype.room");
+//import
 require("prototype.creep");
 
 module.exports.loop = function() {
