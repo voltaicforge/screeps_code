@@ -32,7 +32,10 @@ Object.defineProperty(Creep.prototype, "isEmpty", {
 
 /**
  * Move toward the creeps target and execute its action
+ * true = completed task
+ * false = moving
  * @returns {boolean}
+ *
  */
 Creep.prototype.moveAndDo = function() {
   // Move to targeted location and execute action
@@ -46,8 +49,10 @@ Creep.prototype.moveAndDo = function() {
     console.log("ERROR: " + this.name + " has a invalid target:" + this.target);
   }
   if (this.pos.isNearTo(Game.getObjectById(this.memory.target))) {
-    return this[this.memory.action](Game.getObjectById(this.memory.target), this.memory.resourceType);
+    var result = this[this.memory.action](Game.getObjectById(this.memory.target), this.memory.resourceType);
+    return result;
   } else {
-    return this.moveTo(Game.getObjectById(this.memory.target));
+    var result = this.moveTo(Game.getObjectById(this.memory.target));
+    return result;
   }
 };

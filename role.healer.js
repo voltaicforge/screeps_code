@@ -1,5 +1,6 @@
 /* eslint-disable lodash/prefer-lodash-method */
 /*global module*/
+var roleUpgrader = require("role.upgrader");
 
 var roleHealer = {
   /** @param {Creep} creep **/
@@ -19,7 +20,7 @@ var roleHealer = {
     if (creep.memory.healing) {
       var targets = creep.room.find(FIND_STRUCTURES, {
         filter: function(structure) {
-          return structure.hits < structure.hitsMax;
+          return structure.hits < structure.hitsMax * 0.8;
         }
       });
       if (targets.length) {
@@ -30,6 +31,8 @@ var roleHealer = {
           //TODO Add drop-through role
           //creep.memory.roletemp = "upgrader";
         }
+      } else {
+        roleUpgrader.run(creep);
       }
     } else {
       //Recharge

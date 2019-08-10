@@ -2,14 +2,17 @@
 /* eslint-disable lodash/prefer-lodash-method */
 /*global module*/
 
+var roleHealer = require("role.healer");
+
 /// <reference path="./Screeps-Typescript-Declarations/dist/screeps.d.ts"/>
-"use strict";
+("use strict");
 // TODO Change all roles to job based functions
 var roles = {
   builder: require("role.builder"),
   harvester: require("role.harvester"),
   upgrader: require("role.upgrader"),
-  healer: require("role.healer")
+  healer: require("role.healer"),
+  hauler: require("role.hauler")
 };
 
 require("debug").populate(global);
@@ -20,7 +23,7 @@ require("prototype.creep");
 module.exports.loop = function() {
   //TODO Debug verbosity levels
   //Variables
-  var verbose = true;
+  var verbose = false;
 
   if (verbose) {
     console.log("Start game tick " + Game.time);
@@ -39,6 +42,7 @@ module.exports.loop = function() {
   var builders = _.filter(Game.creeps, creep => creep.memory.role == "builder");
   var upgraders = _.filter(Game.creeps, creep => creep.memory.role == "upgrader");
   var healers = _.filter(Game.creeps, creep => creep.memory.role == "healer");
+  var haulers = _.filter(Game.creeps, creep => creep.memory.role == "hauler");
   // console.log('Harvesters: ' + harvesters.length);
   if (verbose) {
     console.log(
@@ -49,7 +53,9 @@ module.exports.loop = function() {
         " upgraders:" +
         upgraders.length +
         " healers:" +
-        healers.length
+        healers.length +
+        " haulers:" +
+        haulers.length
     );
   }
 
@@ -102,11 +108,11 @@ module.exports.loop = function() {
   //Shall we spawn a creep?
   if (
     (!Game.spawns["Spawn1"].spawning && thisRoom.energyAvailable / thisRoom.energyCapacityAvailable > 0.7) ||
-    harvesters.length == 0
+    harvesters.length < 6
   ) {
     //Check builders
 
-    if (builders.length < 5 && (constructTargets.length || healTargets.length)) {
+    if (builders.length < 6 && (constructTargets.length || healTargets.length)) {
       var newName = "Builder" + Game.time;
       console.log("Spawning new builder: " + newName);
       Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName, {
@@ -122,6 +128,16 @@ module.exports.loop = function() {
         memory: { role: "upgrader" }
       });
     }
+
+    //Check upgraders
+    if (haulers.length < 2) {
+      var newName = "Hauler" + Game.time;
+      console.log("Spawning new hauler: " + newName);
+      Game.spawns["Spawn1"].spawnCreep([CARRY, CARRY, CARRY, CARRY, MOVE], newName, {
+        memory: { role: "hauler" }
+      });
+    }
+
     //Check harvesters
     if (harvesters.length < 6) {
       var newName = "Harvester" + Game.time;
