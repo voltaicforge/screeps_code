@@ -11,9 +11,10 @@ var roleHarvester = {
     }
 
     if (creep.memory.harvesting && creep.isFull) {
+      var target;
       // Find either a nearby container, else prioritize other containers.
       if (target == undefined) {
-        var target = creep.pos.findClosestByPath(creep.room.containers, {
+        target = creep.pos.findClosestByPath(creep.room.containers, {
           filter: structure => {
             return structure.store[RESOURCE_ENERGY] < 2000;
           }
@@ -38,6 +39,11 @@ var roleHarvester = {
             return false;
           }
         });
+      }
+      if (target == undefined) {
+        if (_.sum(creep.room.storage.store) < creep.room.storage.storeCapacity) {
+          target = creep.room.storage;
+        }
       }
       if (target == undefined) {
         target = creep.pos.findClosestByPath(creep.room.spawns);

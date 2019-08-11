@@ -39,6 +39,32 @@ Object.defineProperty(Room.prototype, "constructionSites", {
   }
 });
 
+Object.defineProperty(Room.prototype, "hostileCreeps", {
+  // Single-tick cache container list
+  get: function() {
+    if (!this._hostileCreeps) {
+      this._hostileCreeps = this.find(FIND_HOSTILE_CREEPS);
+    }
+
+    return this._hostileCreeps;
+  }
+});
+
+Object.defineProperty(Room.prototype, "tower", {
+  // Single-tick cache extension list
+  get: function() {
+    if (!this._tower) {
+      this._tower = this.find(FIND_STRUCTURES, {
+        filter: structure => {
+          return structure.structureType == STRUCTURE_TOWER;
+        }
+      });
+    }
+
+    return this._tower;
+  }
+});
+
 Object.defineProperty(Room.prototype, "containers", {
   // Single-tick cache extension list
   get: function() {

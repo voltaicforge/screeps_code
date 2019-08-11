@@ -55,6 +55,10 @@ var roleBuilder = {
     //check constructionSite still needs working on
 
     var result = creep.moveAndDo();
+    if (result != OK) {
+      console.log("ERROR", result, creep.name + "trying to", creep.memory.action, "at", creep.memory.target);
+      delete creep.memory.target;
+    }
   }
 };
 

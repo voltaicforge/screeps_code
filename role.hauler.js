@@ -23,7 +23,7 @@ var roleHauler = {
       creep.memory.action = "withdraw";
       creep.memory.resourceType = RESOURCE_ENERGY;
       creep.memory.hauling = true;
-      console.log(creep.name + " transfer " + creep.memory.target);
+      // console.log(creep.name + " transfer " + creep.memory.target);
     }
 
     if (creep.memory.hauling && creep.isFull) {
@@ -46,19 +46,24 @@ var roleHauler = {
         target = creep.pos.findClosestByPath(creep.room.spawns);
       }
       if (target == undefined) {
-        console.log("ERROR: No target to drop off energy for " + creep.name);
+        if (_.sum(creep.room.storage.store) < creep.room.storage.storeCapacity) {
+          target = creep.room.storage;
+        }
+      }
+      if (target == undefined) {
+        // console.log("ERROR: No target to drop off energy for " + creep.name);
         return;
       }
       creep.memory.action = "transfer";
       creep.memory.target = target.id;
       creep.memory.resourceType = RESOURCE_ENERGY;
       creep.memory.hauling = false;
-      console.log(creep.name + " deposit energy to " + target.id + " using " + creep.memory.resourceType);
+      // console.log(creep.name + " deposit energy to " + target.id + " using " + creep.memory.resourceType);
     }
 
     var result = creep.moveAndDo();
     if (result != OK) {
-      console.log("TCL: result", result, creep.name, "doing", creep.memory.action);
+      // console.log("TCL: result", result, creep.name, "doing", creep.memory.action);
       // Something went wrong, target probably at full.  Deleting the target forces a re-target.
       //TODO Flesh out error reasons
       //TODO Misses a tick while re-targeting
